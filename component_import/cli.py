@@ -40,6 +40,18 @@ class PartDBClient:
         self.token = token
         self.dry_run = dry_run
         self.payloads = []
+        self.skipped = 0
+
+    def _get(self, ep: str, params: dict | None = None):
+        if self.dry_run:
+            return []                      # на сухом прогоне считаем, что базы пустые
+        import requests
+        r = requests.get(f'{self.base}{ep}', params=params or {}, timeout=30, headers={
+            'Authorization': f'Bearer {self.token}',
+            'Accept': 'application/ld+json'})
+        r.raise_for_status()
+        d = r.json()
+        return d.get('hydra:member', d if isinstance(d, list) else [])
 
     def _post(self, ep: str, payload: dict):
         if self.dry_run:
@@ -53,7 +65,16 @@ class PartDBClient:
         return r.json()
 
     def ensure_category(self, name: str):
+        for c in self._get('/api/categories', {'name': name}):
+            if c.get('name') == name:
+                return c                   # уже есть — не создаём дубль
         return self._post('/api/categories', {'name': name})
+
+    def find_part(self, name: str):
+        for p in self._get('/api/parts', {'name': name}):
+            if p.get('name') == name:
+                return p
+        return None
 
     # Поля, публикуемые в parameters детали: KiCad-API Part-DB отдаёт parameters
     # в fields карточки (KiCadHelper), т.е. они доезжают до свойств символа в схеме
@@ -61,7 +82,13 @@ class PartDBClient:
     ESKD_PARAM_FIELDS = ('Тип', 'Документ', 'Примечание', 'Группа',
                          'Класс точности', 'Исключён из ПЭ', 'Масса', 'Высота')
 
-    def push_part(self, base: str, part: dict, category_iri: str, status: str = ''):
+    def push_part(self, base: str, part: dict, category_iri: str, status: str = '',
+                  skip_existing: bool = True):
+        if skip_existing:
+            existing = self.find_part(base)
+            if existing is not None:
+                self.skipped += 1
+                return existing            # идемпотентность: деталь уже в базе
         s = part['symbols'].get('') or next(iter(part['symbols'].values()))
         p = {k: _norm(v) for k, v in s.props.items()}
         payload = {
@@ -141,6 +168,9 @@ def main(argv=None):
         if cli.dry_run:
             cli.dump(os.path.join(a.out, 'partdb_payloads.json'))
             print(f'Payloads для Part-DB: {len(cli.payloads)} шт -> partdb_payloads.json')
+        else:
+            print(f'Выгрузка: создано {len(sess.parts) - cli.skipped}, '
+                  f'пропущено существующих {cli.skipped}')
     errors = sum(1 for i in sess.issues if i.severity == 'error')
     manual = sum(1 for i in sess.issues if i.severity == 'manual')
     print(f'Деталей: {len(sess.parts)} | ошибок: {errors} | на ручную проверку: {manual} | отчёт: {rep}')

@@ -1,6 +1,6 @@
 """CLI этапа 3: component-price {import|confirm|status}."""
 from __future__ import annotations
-import sys, json, argparse, importlib.util
+import sys, os, json, argparse, importlib.util
 from .pricing import (read_internal, match_pricelist, save_offers,
                       MapStore, Offer)
 from .importer import ImportSession
@@ -39,6 +39,12 @@ def main(argv=None):
     st = sub.add_parser('status', help='свежесть цен в накопителе offers.json')
     st.add_argument('offers'); st.add_argument('--max-age', type=int, default=90)
 
+    ps = sub.add_parser('push', help='выгрузить offers.json в Part-DB (штатные сущности:'
+                                     ' suppliers/orderdetails/pricedetails; Д-1 не требуется)')
+    ps.add_argument('offers')
+    ps.add_argument('--url', required=True); ps.add_argument('--token', default='')
+    ps.add_argument('--dry-run', action='store_true')
+
     a = ap.parse_args(argv)
 
     if a.cmd == 'import':
@@ -75,6 +81,43 @@ def main(argv=None):
         for o in stale[:20]:
             print(f'  ! {o.part} {o.supplier}/{o.sku}: цена от {o.price_date}')
         return 1 if stale else 0
+
+    if a.cmd == 'push':
+        from .cli import PartDBClient
+        cli = PartDBClient(a.url, a.token, dry_run=a.dry_run)
+        offers = [Offer(**o) for o in json.load(open(a.offers, encoding='utf-8'))]
+        pushed = skipped = 0
+        sup_cache, od_cache = {}, {}
+        for o in offers:
+            part = cli.find_part(o.part)
+            if part is None and not cli.dry_run:
+                skipped += 1
+                print(f'  ? {o.part}: детали нет в Part-DB — пропуск (сначала component-import --upload)')
+                continue
+            part_iri = (part or {}).get('@id', f'dry://parts/{o.part}')
+            if o.supplier not in sup_cache:
+                found = [s for s in cli._get('/api/suppliers', {'name': o.supplier})
+                         if s.get('name') == o.supplier]
+                sup_cache[o.supplier] = (found[0] if found
+                                         else cli._post('/api/suppliers', {'name': o.supplier}))
+            sup_iri = sup_cache[o.supplier]['@id']
+            od_key = (o.part, o.supplier, o.sku)
+            if od_key not in od_cache:
+                od_cache[od_key] = cli._post('/api/orderdetails', {
+                    'part': part_iri, 'supplier': sup_iri,
+                    'supplierpartnr': o.sku, 'obsolete': False})
+            cli._post('/api/pricedetails', {
+                'orderdetail': od_cache[od_key]['@id'],
+                'price': str(o.price), 'min_discount_quantity': o.qty_from,
+                'price_related_quantity': 1})
+            pushed += 1
+        print(f'Выгружено предложений: {pushed} | пропущено (нет детали): {skipped}')
+        if cli.dry_run:
+            out = os.path.join(os.path.dirname(os.path.abspath(a.offers)) or '.',
+                               'partdb_offers_payloads.json')
+            cli.dump(out)
+            print(f'Payloads: {len(cli.payloads)} -> {out}')
+        return 0
 
 
 if __name__ == '__main__':
