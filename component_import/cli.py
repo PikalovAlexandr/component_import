@@ -83,7 +83,7 @@ class PartDBClient:
                          'Класс точности', 'Исключён из ПЭ', 'Масса', 'Высота')
 
     def push_part(self, base: str, part: dict, category_iri: str, status: str = '',
-                  skip_existing: bool = True):
+                  skip_existing: bool = True, lib_name: str = ''):
         if skip_existing:
             existing = self.find_part(base)
             if existing is not None:
@@ -98,6 +98,20 @@ class PartDBClient:
             'manufacturer_product_number': p.get('Value', ''),
             'comment': p.get('Примечание', '').strip(),
         }
+        # eda_info: что KiCad-API отдаёт как symbolIdStr/footprint/reference.
+        # Только при указанном lib_name (иначе lib_id собрать нельзя) — это и есть
+        # условие видимости детали в дереве Part-DB (KiCadHelper::shouldPartBeVisible).
+        eda = {}
+        if lib_name:
+            eda['kicad_symbol'] = f'{lib_name}:{base}'
+            fp = p.get('Footprint', '').strip()
+            if fp:
+                eda['kicad_footprint'] = fp if ':' in fp else f'{lib_name}:{fp}'
+            ref = (p.get('Reference') or ' ')[0].upper()
+            if ref.isalpha():
+                eda['reference_prefix'] = ref
+        if eda:
+            payload['eda_info'] = eda
         extra = {f'Приёмка {c}. {k}': _norm(v) for c, flds in part['acceptances'].items()
                  if c for k, v in flds.items()}
         if status:
@@ -164,7 +178,7 @@ def main(argv=None):
         cli = PartDBClient(a.upload or 'http://dry-run', a.token or '', dry_run=a.dry_run or not a.upload)
         cat = cli.ensure_category(lib)
         for base, part in sorted(sess.parts.items()):
-            cli.push_part(base, part, cat['@id'])
+            cli.push_part(base, part, cat['@id'], lib_name=lib)
         if cli.dry_run:
             cli.dump(os.path.join(a.out, 'partdb_payloads.json'))
             print(f'Payloads для Part-DB: {len(cli.payloads)} шт -> partdb_payloads.json')
