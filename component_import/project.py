@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
 """Этап 2: операции над проектом KiCad (.kicad_sch).
 - switch_view: переключение библиотек ГОСТ<->IEC для всего проекта (Р-2);
   позиционные обозначения и netlist не меняются — заменяется только lib_id.
 - audit: аудит проекта (FR-7): все ли компоненты из выпущенных библиотек,
   нет ли деталей со статусами «не для новых разработок»/«запрещён»."""
 from __future__ import annotations
-import re, os, shutil
+import re, shutil
 from dataclasses import dataclass
 from .kicad import load_symbol_lib
 from .rules import Issue

@@ -1,4 +1,4 @@
-# Золотые тесты (ПИ-1…ПИ-6) на каждый push/PR — главный актив проекта.
+# Золотые тесты (ПИ-1…ПИ-6), покрытие и линтер на каждый push/PR.
 # Эталонные данные (tests/golden_k50) лежат в репозитории: CI самодостаточен.
 name: tests
 on:
@@ -7,7 +7,21 @@ on:
   pull_request:
 
 jobs:
+  lint:
+    name: ruff (lint)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --upgrade pip
+      - run: pip install ruff
+      - name: Линтер (ruff, конфиг ruff.toml)
+        run: ruff check component_import/ tests/ converters/
+
   pytest:
+    name: pytest + coverage (py${{ matrix.python-version }})
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -20,12 +34,21 @@ jobs:
       - name: Установка пакета и зависимостей
         run: |
           python -m pip install --upgrade pip
-          pip install -e . pytest
-      - name: Золотые тесты (ПИ-1…ПИ-6)
-        run: python -m pytest tests/ -v
+          pip install -e . pytest pytest-cov
+      - name: Золотые тесты (ПИ-1…ПИ-6) + покрытие
+        run: |
+          python -m pytest tests/ -v \
+            --cov=component_import --cov-report=term-missing --cov-report=xml
       - name: Дымовой прогон CLI на golden-наборе
         run: |
           component-import tests/golden_k50 -o /tmp/ci_run --lib-name K50-35 \
             --field-map config/field_map_pcad.csv \
             --tu config/tu_OZh0464214.yaml --dry-run
           test -f "/tmp/ci_run/ОТЧЁТ_K50-35.md"
+      - name: Сохранить отчёт покрытия (coverage.xml)
+        if: matrix.python-version == '3.12'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
+          if-no-files-found: warn

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Этап 4 (Р-10, З-8): калькуляция стоимости изделия по схеме или BOM.
 
 Конвейер: BOM (из .kicad_sch или CSV) -> сопоставление с деталями ->
@@ -13,8 +12,8 @@ XLSX/CSV) -> сравнение версий.
 - предложения старше max_age помечаются «цена устарела» и в подборе не
   участвуют, если есть свежие; если свежих нет — берутся с пометкой."""
 from __future__ import annotations
-import os, re, csv, json, math
-from dataclasses import dataclass, field, asdict
+import os, csv, json, math
+from dataclasses import dataclass, asdict
 from datetime import date, datetime
 from .pricing import Offer
 from . import project

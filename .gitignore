@@ -31,3 +31,8 @@ price_mappings.json
 .vscode/
 .idea/
 .DS_Store
+
+# Coverage (генерируется CI и локально)
+.coverage
+coverage.xml
+htmlcov/

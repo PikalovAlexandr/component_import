@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """В-7 на золотом наборе: должны найтись те же 10 деталей, что в пилотном отчёте."""
 import os, sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))

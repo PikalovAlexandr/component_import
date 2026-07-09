@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Разбор форматов KiCad: s-expression, библиотеки символов, посадочные места."""
 from __future__ import annotations
 import re, os

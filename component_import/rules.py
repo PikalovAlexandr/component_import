@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Валидаторы нормоконтроля В-1…В-6, В-9 (ТЗ «КОМПОНЕНТ», п.4.3).
 Каждая проверка возвращает список Issue; severity: error | warning | manual."""
 from __future__ import annotations

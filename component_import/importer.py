@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
 """Конвейер мастера импорта (Л-7): группировка в детали, слияние приёмки,
 маппинг полей, автоисправления с протоколом, запись исправленной библиотеки."""
 from __future__ import annotations
 import os, re, csv, shutil
-from collections import defaultdict
 from .kicad import load_dir, resolve_footprint
 from . import rules as R
 

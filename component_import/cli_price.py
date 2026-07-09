@@ -1,10 +1,8 @@
-# -*- coding: utf-8 -*-
 """CLI этапа 3: component-price {import|confirm|status}."""
 from __future__ import annotations
-import sys, os, csv, json, argparse, importlib.util
-from datetime import date
+import sys, json, argparse, importlib.util
 from .pricing import (read_internal, match_pricelist, save_offers,
-                      MapStore, Offer, COLUMNS)
+                      MapStore, Offer)
 from .importer import ImportSession
 
 

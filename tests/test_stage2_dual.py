@@ -1,7 +1,6 @@
-# -*- coding: utf-8 -*-
 """Тесты этапа 2 = приёмочные сценарии ПИ-3 (переключение ГОСТ/IEC без смены
 позиционных обозначений, аудит) и ПИ-4 («сломанная» пара УГО не проходит)."""
-import os, re, sys
+import os, sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 from component_import.importer import ImportSession
 from component_import import dual, project

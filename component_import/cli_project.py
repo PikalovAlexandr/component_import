@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """CLI этапа 2: component-project {views|switch|audit}."""
 from __future__ import annotations
 import sys, argparse

@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
 """Отчёт (MD), выгрузка в Part-DB (REST API, JSON-LD) и CLI."""
 from __future__ import annotations
 import os, sys, json, argparse
 from collections import Counter
-from . import __version__
 from .importer import ImportSession, load_field_map
 from .rules import ENC_ARTIFACT
 

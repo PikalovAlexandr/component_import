@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Клиент Part-DB: контрактные поля уходят в parameters (рекомендация стенда М0)."""
 import os, sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
