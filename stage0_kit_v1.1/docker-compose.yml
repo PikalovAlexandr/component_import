@@ -1,0 +1,74 @@
+# Система «КОМПОНЕНТ», этап 0: Part-DB + PostgreSQL + Gitea
+# Развёртывание: cp .env.example .env; отредактировать; docker compose up -d
+version: "3.8"
+
+services:
+  database:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: partdb
+      POSTGRES_USER: partdb
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      # Кириллица: сортировка и сравнение по-русски
+      POSTGRES_INITDB_ARGS: "--locale=ru_RU.UTF-8 --encoding=UTF8"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U partdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  partdb:
+    image: jbtronics/part-db1:latest
+    restart: unless-stopped
+    depends_on:
+      database:
+        condition: service_healthy
+    ports:
+      - "${PARTDB_PORT:-8080}:80"
+    environment:
+      DATABASE_URL: "postgresql://partdb:${DB_PASSWORD}@database:5432/partdb?serverVersion=16&charset=utf8"
+      DEFAULT_LANG: "ru"
+      DEFAULT_TIMEZONE: "Europe/Moscow"       # поправьте под ваш пояс
+      BASE_CURRENCY: "RUB"
+      INSTANCE_NAME: "КОМПОНЕНТ (опытная эксплуатация)"
+      APP_ENV: docker
+      DB_AUTOMIGRATE: "true"   # без этого чистая установка отдаёт HTTP 500 (миграции не применены)
+      TRUSTED_PROXIES: "127.0.0.0/8,::1,172.16.0.0/12"
+      TRUSTED_HOSTS: "^(localhost|partdb|${SERVER_HOST})$$"
+      # --- Провайдеры цен (этап 0: только Octopart/Nexar; ключи получить на nexar.com) ---
+      PROVIDER_OCTOPART_CLIENT_ID: "${OCTOPART_CLIENT_ID}"
+      PROVIDER_OCTOPART_SECRET: "${OCTOPART_SECRET}"
+      PROVIDER_OCTOPART_CURRENCY: "RUB"
+      PROVIDER_OCTOPART_COUNTRY: "RU"
+      # --- Прочее ---
+      HISTORY_SAVE_CHANGED_FIELDS: "1"
+      HISTORY_SAVE_CHANGED_DATA: "1"
+      HISTORY_SAVE_REMOVED_DATA: "1"
+      CHECK_FOR_UPDATES: "0"                  # закрытый контур: обновления вручную
+    volumes:
+      - partdb_uploads:/var/www/html/uploads
+      - partdb_media:/var/www/html/public/media
+
+  gitea:
+    image: gitea/gitea:1.22
+    restart: unless-stopped
+    environment:
+      USER_UID: "1000"
+      USER_GID: "1000"
+      GITEA__database__DB_TYPE: sqlite3       # git-у хватит sqlite; БД деталей — отдельно
+      GITEA__server__ROOT_URL: "http://${SERVER_HOST}:${GITEA_PORT:-3000}/"
+      GITEA__service__DISABLE_REGISTRATION: "true"
+    ports:
+      - "${GITEA_PORT:-3000}:3000"
+      - "2222:22"
+    volumes:
+      - gitea_data:/data
+
+volumes:
+  db_data:
+  partdb_uploads:
+  partdb_media:
+  gitea_data:

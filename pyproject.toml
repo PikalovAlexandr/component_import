@@ -1,0 +1,17 @@
+[project]
+name = "component-import"
+version = "0.6.1"
+description = "Система «КОМПОНЕНТ», этап 1: мастер импорта и валидаторы библиотек KiCad"
+requires-python = ">=3.10"
+dependencies = ["requests", "pyyaml"]
+[tool.setuptools]
+packages = ["component_import"]
+# config/ и converters/ — данные и примеры, устанавливаются рядом с проектом,
+# а не в site-packages: конвертеры подключаются через --converter <путь>,
+# эталоны ТУ — через --tu <путь>.
+
+[project.scripts]
+component-import = "component_import.cli:main"
+component-project = "component_import.cli_project:main"
+component-price = "component_import.cli_price:main"
+component-cost = "component_import.cli_cost:main"

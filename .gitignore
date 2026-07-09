@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Тестирование / кэш
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Архивы поставок (исходники уже в репо, архивы не нужны)
+*.zip
+
+# Локальные секреты и окружение
+.env
+*.token
+gitea_token.txt
+
+# Результаты прогонов (генерируются)
+out/
+/tmp/
+partdb_payloads.json
+offers.json
+price_mappings.json
+*.bak
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
