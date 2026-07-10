@@ -9,7 +9,10 @@ cd "$(dirname "$0")/.."
 PROJECT=$(basename "$PWD")
 
 echo "[$STAMP] БД PostgreSQL..."
-docker compose exec -T database pg_dump -U partdb -Fc partdb > "$DIR/$STAMP/partdb.dump"
+# stderr docker exec направляем в /dev/null: при -T без TTY предупреждения
+# docker (напр. «version obsolete») смешиваются с бинарным stdout pg_dump и
+# ломают дамп (сигнатура PGDMP затирается → pg_restore падает).
+docker compose exec -T database pg_dump -U partdb -Fc partdb > "$DIR/$STAMP/partdb.dump" 2>/dev/null
 
 echo "[$STAMP] Вложения Part-DB (ТУ, datasheet, SPICE, прайсы)..."
 docker run --rm -v "${PROJECT}_partdb_uploads":/src:ro -v "$DIR/$STAMP":/dst alpine tar czf /dst/uploads.tgz -C /src .
