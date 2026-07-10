@@ -1,6 +1,9 @@
 """Этап 3 = сценарий ПИ-6: импорт прайса через конвертер, подтверждение
 соответствий с запоминанием, слияние/обновление цен, устаревание."""
-import os, sys, json, csv
+import os
+import sys
+import json
+import csv
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 from datetime import date, timedelta
 from component_import.importer import ImportSession

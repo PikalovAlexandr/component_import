@@ -1,6 +1,6 @@
 [project]
 name = "component-import"
-version = "0.7.0"
+version = "0.8.0"
 description = "Система «КОМПОНЕНТ», этап 1: мастер импорта и валидаторы библиотек KiCad"
 requires-python = ">=3.10"
 dependencies = ["requests", "pyyaml"]
@@ -15,3 +15,4 @@ component-import = "component_import.cli:main"
 component-project = "component_import.cli_project:main"
 component-price = "component_import.cli_price:main"
 component-cost = "component_import.cli_cost:main"
+component-batch = "component_import.cli_batch:main"

@@ -1,5 +1,6 @@
 """Доработки по итогам массового прогона PCAD (66 библиотек)."""
-import os, sys
+import os
+import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 from component_import.kicad import Symbol, Pin
 from component_import import rules as R

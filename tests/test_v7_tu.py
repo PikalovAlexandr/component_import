@@ -1,5 +1,6 @@
 """В-7 на золотом наборе: должны найтись те же 10 деталей, что в пилотном отчёте."""
-import os, sys
+import os
+import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 from component_import.importer import ImportSession
 from component_import.tudoc import TuDoc, v7_check

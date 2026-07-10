@@ -1,5 +1,7 @@
 """«Золотой» тест на серии К50-35 = приёмочные испытания ПИ-1/ПИ-2 в виде CI-теста."""
-import os, sys, collections
+import os
+import sys
+import collections
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 from component_import.importer import ImportSession
 

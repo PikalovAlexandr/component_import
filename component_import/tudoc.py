@@ -20,7 +20,9 @@
 CSV: колонки-ключи (имена групп key_regex) + колонки параметров; десятичная ','
 или '.'; пустая ячейка = не сверять."""
 from __future__ import annotations
-import re, csv, os
+import re
+import csv
+import os
 import yaml
 from .rules import Issue
 

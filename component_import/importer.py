@@ -1,7 +1,10 @@
 """Конвейер мастера импорта (Л-7): группировка в детали, слияние приёмки,
 маппинг полей, автоисправления с протоколом, запись исправленной библиотеки."""
 from __future__ import annotations
-import os, re, csv, shutil
+import os
+import re
+import csv
+import shutil
 from .kicad import load_dir, resolve_footprint
 from . import rules as R
 

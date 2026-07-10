@@ -1,6 +1,9 @@
 """CLI этапа 3: component-price {import|confirm|status}."""
 from __future__ import annotations
-import sys, os, json, argparse, importlib.util
+import sys
+import json
+import argparse
+import importlib.util
 from .pricing import (read_internal, match_pricelist, save_offers,
                       MapStore, Offer)
 from .importer import ImportSession
@@ -74,14 +77,6 @@ def main(argv=None):
             print(f'Запомнено: {a.supplier}/{sku} -> {target}')
         return 0
 
-    if a.cmd == 'status':
-        offers = [Offer(**o) for o in json.load(open(a.offers, encoding='utf-8'))]
-        stale = [o for o in offers if o.is_stale(a.max_age)]
-        print(f'Предложений: {len(offers)} | устарело (> {a.max_age} дн): {len(stale)}')
-        for o in stale[:20]:
-            print(f'  ! {o.part} {o.supplier}/{o.sku}: цена от {o.price_date}')
-        return 1 if stale else 0
-
     if a.cmd == 'push':
         from .cli import PartDBClient
         cli = PartDBClient(a.url, a.token, dry_run=a.dry_run)
@@ -113,11 +108,20 @@ def main(argv=None):
             pushed += 1
         print(f'Выгружено предложений: {pushed} | пропущено (нет детали): {skipped}')
         if cli.dry_run:
-            out = os.path.join(os.path.dirname(os.path.abspath(a.offers)) or '.',
-                               'partdb_offers_payloads.json')
+            import os as _os
+            out = _os.path.join(_os.path.dirname(_os.path.abspath(a.offers)) or '.',
+                                'partdb_offers_payloads.json')
             cli.dump(out)
             print(f'Payloads: {len(cli.payloads)} -> {out}')
         return 0
+
+    if a.cmd == 'status':
+        offers = [Offer(**o) for o in json.load(open(a.offers, encoding='utf-8'))]
+        stale = [o for o in offers if o.is_stale(a.max_age)]
+        print(f'Предложений: {len(offers)} | устарело (> {a.max_age} дн): {len(stale)}')
+        for o in stale[:20]:
+            print(f'  ! {o.part} {o.supplier}/{o.sku}: цена от {o.price_date}')
+        return 1 if stale else 0
 
 
 if __name__ == '__main__':

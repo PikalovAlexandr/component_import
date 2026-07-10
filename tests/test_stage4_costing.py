@@ -1,6 +1,8 @@
 """Этап 4 = сценарий ПИ-5: калькуляция для тиражей 10 и 100 с ценовыми
 порогами, MOQ, складом, приёмкой и несопоставленной позицией."""
-import os, sys, json
+import os
+import sys
+import json
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 from datetime import date
 from component_import.importer import ImportSession

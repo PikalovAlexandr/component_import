@@ -132,6 +132,16 @@ class PartDBClient:
         json.dump(self.payloads, open(path, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
 
 
+def upload_session(sess, url: str, token: str, lib: str, dry_run: bool):
+    """Выгрузка результатов ImportSession в Part-DB. Возвращает (client, создано)."""
+    sess.apply_field_map_props()
+    cli = PartDBClient(url or 'http://dry-run', token or '', dry_run=dry_run)
+    cat = cli.ensure_category(lib)
+    for base, part in sorted(sess.parts.items()):
+        cli.push_part(base, part, cat['@id'], lib_name=lib)
+    return cli, len(sess.parts) - cli.skipped
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(
         prog='component-import',
@@ -174,11 +184,8 @@ def main(argv=None):
                 print('  !', i.obj, i.rule, i.message)
     rep = make_report(sess, os.path.join(a.out, f'ОТЧЁТ_{lib}.md'), lib)
     if a.upload or a.dry_run:
-        sess.apply_field_map_props()   # выгружаем поля уже в именах контракта
-        cli = PartDBClient(a.upload or 'http://dry-run', a.token or '', dry_run=a.dry_run or not a.upload)
-        cat = cli.ensure_category(lib)
-        for base, part in sorted(sess.parts.items()):
-            cli.push_part(base, part, cat['@id'], lib_name=lib)
+        cli, created = upload_session(sess, a.upload, a.token, lib,
+                                      dry_run=a.dry_run or not a.upload)
         if cli.dry_run:
             cli.dump(os.path.join(a.out, 'partdb_payloads.json'))
             print(f'Payloads для Part-DB: {len(cli.payloads)} шт -> partdb_payloads.json')

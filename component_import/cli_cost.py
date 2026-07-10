@@ -1,6 +1,7 @@
 """CLI этапа 4: component-cost {calc|compare}."""
 from __future__ import annotations
-import sys, argparse
+import sys
+import argparse
 from . import costing
 from .importer import ImportSession
 

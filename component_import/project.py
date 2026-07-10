@@ -4,7 +4,8 @@
 - audit: аудит проекта (FR-7): все ли компоненты из выпущенных библиотек,
   нет ли деталей со статусами «не для новых разработок»/«запрещён»."""
 from __future__ import annotations
-import re, shutil
+import re
+import shutil
 from dataclasses import dataclass
 from .kicad import load_symbol_lib
 from .rules import Issue

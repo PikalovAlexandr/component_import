@@ -12,7 +12,10 @@ XLSX/CSV) -> сравнение версий.
 - предложения старше max_age помечаются «цена устарела» и в подборе не
   участвуют, если есть свежие; если свежих нет — берутся с пометкой."""
 from __future__ import annotations
-import os, csv, json, math
+import os
+import csv
+import json
+import math
 from dataclasses import dataclass, asdict
 from datetime import date, datetime
 from .pricing import Offer

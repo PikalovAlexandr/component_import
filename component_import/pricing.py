@@ -13,7 +13,11 @@ convert(path) -> list[dict] в этом формате (см. converters/demo_di
 Цены датируются датой прайса; старше max_age_days — «устарела» (в калькуляции
 этапа 4 такие цены помечаются и не считаются достоверными)."""
 from __future__ import annotations
-import csv, json, os, re, unicodedata
+import csv
+import json
+import os
+import re
+import unicodedata
 from dataclasses import dataclass, asdict
 from datetime import date, datetime
 

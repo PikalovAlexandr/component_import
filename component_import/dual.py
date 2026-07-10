@@ -3,7 +3,9 @@
 библиотеки: <lib>-GOST.kicad_sym и <lib>-IEC.kicad_sym с одинаковыми именами
 деталей и полями — отличается только графика."""
 from __future__ import annotations
-import os, re, csv
+import os
+import re
+import csv
 from .kicad import load_symbol_lib, Symbol
 from . import rules as R
 

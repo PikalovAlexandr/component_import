@@ -1,6 +1,7 @@
 """Разбор форматов KiCad: s-expression, библиотеки символов, посадочные места."""
 from __future__ import annotations
-import re, os
+import re
+import os
 from dataclasses import dataclass, field
 
 _TOKEN = re.compile(r'"(?:[^"\\]|\\.)*"|\(|\)|[^\s()]+')
