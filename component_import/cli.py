@@ -138,7 +138,17 @@ def upload_session(sess, url: str, token: str, lib: str, dry_run: bool):
     cli = PartDBClient(url or 'http://dry-run', token or '', dry_run=dry_run)
     cat = cli.ensure_category(lib)
     for base, part in sorted(sess.parts.items()):
-        cli.push_part(base, part, cat['@id'], lib_name=lib)
+        was_skipped = cli.skipped
+        created = cli.push_part(base, part, cat['@id'], lib_name=lib)
+        # Д-3: роль УГО «ГОСТ» (импорт из PCAD = ГОСТ-графика). Только для
+        # новых деталей: у существующих роль уже есть (backfill миграции 002
+        # или прошлый прогон) — идемпотентность без лишних GET.
+        if cli.skipped == was_skipped:
+            cli._post('/api/component_symbols', {
+                'part': created.get('@id'),
+                'role': 'gost',
+                'symbol_id': f'{lib}:{base}',
+            })
     return cli, len(sess.parts) - cli.skipped
 
 

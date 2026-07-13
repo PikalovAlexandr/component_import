@@ -3,7 +3,6 @@ import os
 import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 from component_import.importer import ImportSession
-from component_import.cli import PartDBClient
 
 def test_params_pushed():
     src = os.path.join(os.path.dirname(__file__), 'golden_k50')
@@ -11,12 +10,15 @@ def test_params_pushed():
                       config={'lib_name': 'K50-35'})
     s.validate(); s.group()
     s.apply_field_map_props()
-    cli = PartDBClient('http://dry', '', dry_run=True)
-    cat = cli.ensure_category('K50-35')
-    base = 'K50-35-100В-10'
-    cli.push_part(base, s.parts[base], cat['@id'])
+    from component_import.cli import upload_session
+    cli, created = upload_session(s, '', '', 'K50-35', dry_run=True)
+    assert created == 65
+    syms = [p['payload'] for p in cli.payloads
+            if p['endpoint'] == '/api/component_symbols']
+    assert len(syms) == 65 and syms[0]['role'] == 'gost'
+    assert any(x['symbol_id'] == 'K50-35:K50-35-100В-10' for x in syms)
     eps = [p['endpoint'] for p in cli.payloads]
-    assert eps.count('/api/parts') == 1
+    assert eps.count('/api/parts') == 65
     params = [p['payload'] for p in cli.payloads if p['endpoint'] == '/api/parameters']
     names = {p['name'] for p in params}
     # поля из исходной библиотеки: Масса/Высота есть всегда; Документ — после маппинга
