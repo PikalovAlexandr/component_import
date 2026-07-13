@@ -32,3 +32,32 @@ def test_composite_field_map(tmp_path):
     text = open(os.path.join(out, 'K50-35.kicad_sym'), encoding='utf-8').read()
     assert '(property "Документ"' in text and '(property "Гост-Ту"' not in text
     assert '(property "Тип" "Сданы в архив Прочие изделия"' in text  # собрано из Вид+Раздел (в К50-35 «Вид» — статус!)
+
+
+def test_v3_fix_nondigit_pin_names(tmp_path):
+    """СВОДКА М1: у К10/К15 остаток «2 на деталь» — нецифровые имена выводов."""
+    import glob, shutil
+    src = os.path.join(os.path.dirname(__file__), 'golden_k50')
+    raw = open(os.path.join(src, 'C_K50-35.kicad_sym'), encoding='utf-8').read()
+    raw = raw.replace('(name "1"', '(name "+"', 1).replace('(name "2"', '(name "-"', 1)
+    d = tmp_path / 'lib'; d.mkdir()
+    (d / 'C_T.kicad_sym').write_text(raw, encoding='utf-8')
+    for m in glob.glob(os.path.join(src, '*.kicad_mod')):
+        shutil.copy(m, d)
+    s = ImportSession(str(d), config={'lib_name': 'T'})
+    s.validate(); s.group()
+    out = s.write_fixed(str(tmp_path / 'out'))
+    chk = ImportSession(out, config={'lib_name': 'T'})
+    chk.validate()
+    assert sum(1 for i in chk.issues
+               if i.rule == 'В-3' and i.severity == 'error') == 0
+
+
+def test_v6_power_symbols_no_required_fields():
+    """СВОДКА М1: ПИТАНИЕ 275->275 — обязательные поля не для символов питания."""
+    pwr = Symbol(name='GND', props={'Reference': '#PWR'},
+                 pins=[Pin('1', 'GND', 'power_in')], raw='(symbol "GND" (power)')
+    assert R.v6_fields(pwr, ['Наименование']) == []
+    usual = Symbol(name='Cx', props={'Reference': 'C'},
+                   pins=[Pin('1', '1', 'passive')], raw='(symbol "Cx"')
+    assert len(R.v6_fields(usual, ['Наименование'])) == 1

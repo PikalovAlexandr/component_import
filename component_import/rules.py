@@ -133,15 +133,19 @@ def v5_footprint_geometry(fp: Footprint) -> list[Issue]:
 
 
 def v6_fields(sym: Symbol, required: list[str] = ()) -> list[Issue]:
-    """В-6: кодировка, обязательность полей."""
+    """В-6: кодировка, обязательность полей.
+    У символов питания (#PWR/power) обязательные поля ЕСКД не требуются:
+    в перечень элементов они не попадают (СВОДКА М1: ПИТАНИЕ 275->275)."""
     issues = []
     for k, v in sym.props.items():
         if ENC_ARTIFACT.search(v):
             issues.append(Issue('В-6', 'error', sym.name,
                                 f'поле "{k}": артефакт кодировки в "{v.strip()}"', fixable=True))
-    for k in required:
-        if not sym.props.get(k, '').strip():
-            issues.append(Issue('В-6', 'error', sym.name, f'обязательное поле "{k}" не заполнено'))
+    if not is_power_symbol(sym):
+        for k in required:
+            if not sym.props.get(k, '').strip():
+                issues.append(Issue('В-6', 'error', sym.name,
+                                    f'обязательное поле "{k}" не заполнено'))
     return issues
 
 

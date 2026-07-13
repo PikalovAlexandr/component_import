@@ -92,7 +92,15 @@ class ImportSession:
             if n: self.fix_log.append(f'{name}: тип выводов -> passive — {n}')
         def fix_name(m):
             return f'(name "{m.group(2)}"{m.group(1)}(number "{m.group(2)}"'
-        text, n = re.subn(r'\(name "\d+"((?:(?!\(number)[\s\S])*?)\(number "(\d+)"', fix_name, text)
+        if R.DEFAULT_CLASS_RULES.get(
+                (sym.props.get('Reference') or ' ')[0].upper(), {}
+        ).get('name_eq_number'):
+            # пассивные классы: имя = номеру, каким бы ни было имя
+            # (СВОДКА М1: у К10/К15 имена нецифровые — цифровой фикс их не брал)
+            pat = r'\(name "(?:[^"\\]|\\.)*"((?:(?!\(number)[\s\S])*?)\(number "([^"]+)"'
+        else:
+            pat = r'\(name "\d+"((?:(?!\(number)[\s\S])*?)\(number "(\d+)"'
+        text, n = re.subn(pat, fix_name, text)
         # считаем только реальные замены (regex матчит и совпадающие пары)
         return text
 
