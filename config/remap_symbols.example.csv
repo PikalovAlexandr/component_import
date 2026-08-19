@@ -1,0 +1,7 @@
+# Путь B для УГО: перевод symbolIdStr на общие символы
+# old;new (old* = префикс). Запуск:
+#   python3 tools/remap_footprints.py config/remap_symbols.example.csv \
+#     --url http://localhost:90 --token <токен> --field symbol --only-lib K50-35 --dry-run
+old;new
+// К50-35: атомарные символы серии -> общий ГОСТ-символ (поля номинала из базы)
+K50-35*;Device_GOST:C

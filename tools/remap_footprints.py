@@ -50,6 +50,9 @@ def main(argv=None):
     ap.add_argument('--dry-run', action='store_true')
     ap.add_argument('--only-lib', help='обработать только детали с этим префиксом '
                                        '(напр. K50-35), без :имени')
+    ap.add_argument('--field', choices=['footprint', 'symbol'], default='footprint',
+                    help='что переводить: футпринты (путь B) или УГО (symbolIdStr, '
+                         'напр. на Device_GOST:C)')
     a = ap.parse_args(argv)
 
     rules = load_map(a.mapping)
@@ -69,7 +72,8 @@ def main(argv=None):
             # в коллекции eda_info не встраивается — берём карточку детали
             p = requests.get(f"{a.url}{m['@id']}", headers=hdr, timeout=30).json()
             ei = p.get('eda_info')
-            fp = ei.get('kicad_footprint') if isinstance(ei, dict) else None
+            key = 'kicad_footprint' if a.field == 'footprint' else 'kicad_symbol'
+            fp = ei.get(key) if isinstance(ei, dict) else None
             fp = fp or ''
             if not fp:
                 continue
@@ -84,7 +88,7 @@ def main(argv=None):
             if not a.dry_run:
                 requests.patch(f"{a.url}{p['@id']}", headers={
                     **hdr, 'Content-Type': 'application/merge-patch+json'},
-                    json={'eda_info': {'kicad_footprint': new}}, timeout=30).raise_for_status()
+                    json={'eda_info': {key: new}}, timeout=30).raise_for_status()
             patched += 1
         page += 1
     print(f'Деталей с футпринтом: {seen} | переведено: {patched} | без правила: {skipped}')
