@@ -1,0 +1,11 @@
+# Путь B: перевод футпринтов на стандартные библиотеки KiCad
+# Колонки: old;new  (old целиком = точное совпадение; old* = префикс)
+# Запуск:
+#   python3 tools/remap_footprints.py config/remap_footprints.example.csv \
+#     --url http://localhost:90 --token <токен> --only-lib K50-35 --dry-run
+# Сверьте геометрию (D, шаг, высоту) с ТУ перед включением строки!
+old;new
+// К50-35 — кандидаты (проверить по ОЖ0.464.214 ТУ: диаметр и шаг)
+K50-35:6.3X2.5;Capacitor_THT:CP_Radial_D6.3mm_P2.50mm
+K50-35:8X2.5;Capacitor_THT:CP_Radial_D8.0mm_P2.50mm
+K50-35:10X5;Capacitor_THT:CP_Radial_D10.0mm_P5.00mm
